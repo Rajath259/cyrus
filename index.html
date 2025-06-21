@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Email Generator - Step 1</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, textarea, select, button {
+      display: block; width: 100%; margin-top: 10px; padding: 10px;
+    }
+    .hidden { display: none; }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <h2>Email Generator - Step 1</h2>
+
+  <label>Opsgenie Number:</label>
+  <input id="opsgenieNumber" />
+
+  <label>Dataset Name:</label>
+  <input id="datasetName" />
+
+  <label>Dataset ID:</label>
+  <input id="datasetId" />
+
+  <label>Collection ID:</label>
+  <input id="collectionId" />
+
+  <label>Alert Type:</label>
+  <select id="alertType" onchange="toggleTableFields()">
+    <option value="">-- Select --</option>
+    <option value="Dataset update Workflow failure">Dataset update Workflow failure</option>
+    <option value="INTAKE_SERVER_ERROR">INTAKE_SERVER_ERROR</option>
+    <option value="LAKE_HOUSE_LOAD_FAILURE">LAKE_HOUSE_LOAD_FAILURE</option>
+    <option value="Collection update Workflow failure">Collection update Workflow failure</option>
+    <option value="Insert_Workflow_Failure">Insert_Workflow_Failure</option>
+    <option value="Update_Workflow_Failure">Update_Workflow_Failure</option>
+    <option value="RESPONSIVE_METADATA_ERROR">RESPONSIVE_METADATA_ERROR</option>
+  </select>
+
+  <div id="responsiveFields" class="hidden">
+    <label>Table Name(s):</label>
+    <textarea id="tableNames" placeholder="Enter each table on a new line"></textarea>
+
+    <label>Table Dataset ID(s):</label>
+    <textarea id="tableDatasetIds" placeholder="Enter corresponding dataset IDs"></textarea>
+  </div>
+
+  <label>Timestamp (IST):</label>
+  <input id="timestamp" placeholder="YYYY-MM-DD HH:MM" />
+
+  <label>Error Details:</label>
+  <textarea id="errorDetails"></textarea>
+
+  <label>Session User:</label>
+  <input id="sessionUser" />
+
+  <label>Intake Type:</label>
+  <input id="intakeInfo" />
+
+  <label>Load Pattern:</label>
+  <input id="loadPattern" />
+
+  <button onclick="generateAndGo()">Generate Email</button>
+
+  <footer>Rajath N Prasad • DevOps Engg</footer>
+
+  <script>
+    function toggleTableFields() {
+      const alertType = document.getElementById("alertType").value;
+      document.getElementById("responsiveFields").classList.toggle("hidden", alertType !== "RESPONSIVE_METADATA_ERROR");
+    }
+
+    function convertISTtoET(istTime) {
+      try {
+        const [datePart, timePart] = istTime.split(' ');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+        const istDate = new Date(Date.UTC(year, month - 1, day, hour - 5, minute - 30)); // IST to UTC
+        return istDate.toLocaleString("en-US", { timeZone: "America/New_York" });
+      } catch {
+        return istTime;
+      }
+    }
+
+    function generateAndGo() {
+      const data = {
+        opsgenieNumber: document.getElementById("opsgenieNumber").value,
+        datasetName: document.getElementById("datasetName").value,
+        datasetId: document.getElementById("datasetId").value,
+        collectionId: document.getElementById("collectionId").value,
+        alertType: document.getElementById("alertType").value,
+        tableNames: document.getElementById("tableNames").value,
+        tableDatasetIds: document.getElementById("tableDatasetIds").value,
+        timestamp: document.getElementById("timestamp").value,
+        errorDetails: document.getElementById("errorDetails").value,
+        sessionUser: document.getElementById("sessionUser").value,
+        intakeInfo: document.getElementById("intakeInfo").value,
+        loadPattern: document.getElementById("loadPattern").value
+      };
+
+      if (!data.datasetName || !data.opsgenieNumber || !data.alertType) {
+        alert("Please fill required fields");
+        return;
+      }
+
+      const idToPrint = data.collectionId || data.datasetId;
+      const subject = `ACTION REQUIRED: Failure Alert #${data.opsgenieNumber} for dataset "${data.datasetName}" (${idToPrint})`;
+      const etTime = convertISTtoET(data.timestamp);
+
+      let body = `Hi Team,\n\nYou are listed as the Technical/Business Steward for the data lake asset "${data.datasetName}" (${idToPrint}).\n`;
+
+      if (data.alertType === "RESPONSIVE_METADATA_ERROR") {
+        const tables = data.tableNames.trim().split("\n");
+        const datasets = data.tableDatasetIds.trim().split("\n");
+        body += `\nAs the on-call engineer currently supporting the Data Exchange platform, I wanted to bring to your attention an issue we encountered earlier today.\n\nWe received a "${data.alertType}" alert concerning the below different tables:\n\n`;
+
+        tables.forEach((t, i) => {
+          body += `${i + 1}. ${t.trim()} (Dataset ID: ${datasets[i] || "N/A"})\n`;
+        });
+
+        body += `\nError Details:\n${data.errorDetails}\n\nTimestamp: ${etTime}\n`;
+      } else {
+        body += `\nI'm the on-call engineer supporting the data lake, and we received a "${data.alertType}" alert today for your dataset.\n\n`;
+        body += `Error Details:\n${data.errorDetails}\n\nTimestamp: ${etTime}\nIntake - ${data.intakeInfo}\nLoad Pattern - ${data.loadPattern}\n`;
+      }
+
+      body += `\nPlease look into it and get back to us if an action is required from our end.\n\nThank you,\nRajath N Prasad\nDevOps Engg`;
+
+      sessionStorage.setItem("emailSubject", subject);
+      sessionStorage.setItem("emailBody", body);
+
+      window.location.href = "send.html";
+    }
+  </script>
+</body>
+</html>
