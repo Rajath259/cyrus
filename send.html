@@ -6,7 +6,10 @@
   <style>
     body { font-family: Arial; padding: 20px; }
     input, textarea, button {
-      display: block; width: 100%; margin-top: 10px; padding: 10px;
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
     }
     footer {
       margin-top: 40px;
@@ -23,36 +26,36 @@
   <input id="toEmail" type="email" placeholder="example@domain.com" />
 
   <label>CC:</label>
-  <input id="ccEmail" type="text" value="Chick-fil-A Cloud DataOps <cfa-cdops@phdata.io>, David Stewart <david.stewart@cfacorp.com>" />
+  <input id="ccEmail" type="email" value="cfa-cdops@phdata.io, david.stewart@cfacorp.com" />
 
   <label>Subject:</label>
   <input id="subject" readonly />
 
   <label>Message:</label>
-  <textarea id="body" rows="15" readonly></textarea>
+  <textarea id="body" rows="14" readonly></textarea>
 
   <button onclick="sendMail()">Send Email</button>
 
-  <footer>Email generated successfully • Rajath N Prasad • DevOps Engg</footer>
+  <footer>Rajath N Prasad • DevOps Engg</footer>
 
   <script>
     window.onload = function () {
-      document.getElementById("subject").value = sessionStorage.getItem("emailSubject");
-      document.getElementById("body").value = sessionStorage.getItem("emailBody");
+      document.getElementById("subject").value = sessionStorage.getItem("emailSubject") || "";
+      document.getElementById("body").value = sessionStorage.getItem("emailBody") || "";
     };
 
     function sendMail() {
-      const to = document.getElementById("toEmail").value;
-      const cc = document.getElementById("ccEmail").value;
-      const subject = encodeURIComponent(document.getElementById("subject").value);
-      const body = encodeURIComponent(document.getElementById("body").value);
+      const to = document.getElementById("toEmail").value.trim();
+      const cc = document.getElementById("ccEmail").value.trim();
+      const subject = encodeURIComponent(document.getElementById("subject").value.trim());
+      const body = encodeURIComponent(document.getElementById("body").value.trim());
 
       if (!to) {
         alert("Please enter recipient email.");
         return;
       }
 
-      const mailtoLink = `mailto:${to}?cc=${encodeURIComponent(cc)}&subject=${subject}&body=${body}`;
+      const mailtoLink = `mailto:${to}?cc=${cc}&subject=${subject}&body=${body}`;
       window.location.href = mailtoLink;
     }
   </script>
