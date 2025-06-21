@@ -52,8 +52,8 @@
     <textarea id="tableDatasetIds" placeholder="Enter corresponding dataset IDs"></textarea>
   </div>
 
-  <label>Timestamp (IST):</label>
-  <input id="timestamp" placeholder="YYYY-MM-DD HH:MM" />
+  <label>Timestamp (IST - Format: Jun 19, 2025 10:38 AM):</label>
+  <input id="timestamp" placeholder="e.g. Jun 19, 2025 10:38 AM" />
 
   <label>Error Details:</label>
   <textarea id="errorDetails"></textarea>
@@ -77,52 +77,53 @@
       document.getElementById("responsiveFields").classList.toggle("hidden", alertType !== "RESPONSIVE_METADATA_ERROR");
     }
 
-    function convertISTtoET(istTime) {
+    function convertISTToET(istStr) {
       try {
-        const [datePart, timePart] = istTime.split(' ');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute] = timePart.split(':').map(Number);
-        const istDate = new Date(Date.UTC(year, month - 1, day, hour - 5, minute - 30)); // IST to UTC
-        return istDate.toLocaleString("en-US", { timeZone: "America/New_York" });
-      } catch {
-        return istTime;
+        const istDate = new Date(istStr + " GMT+0530");
+        return istDate.toLocaleString("en-US", { timeZone: "America/New_York", hour12: true });
+      } catch (e) {
+        return istStr;
       }
     }
 
     function generateAndGo() {
       const data = {
-        opsgenieNumber: document.getElementById("opsgenieNumber").value,
-        datasetName: document.getElementById("datasetName").value,
-        datasetId: document.getElementById("datasetId").value,
-        collectionId: document.getElementById("collectionId").value,
+        opsgenieNumber: document.getElementById("opsgenieNumber").value.trim(),
+        datasetName: document.getElementById("datasetName").value.trim(),
+        datasetId: document.getElementById("datasetId").value.trim(),
+        collectionId: document.getElementById("collectionId").value.trim(),
         alertType: document.getElementById("alertType").value,
-        tableNames: document.getElementById("tableNames").value,
-        tableDatasetIds: document.getElementById("tableDatasetIds").value,
-        timestamp: document.getElementById("timestamp").value,
-        errorDetails: document.getElementById("errorDetails").value,
-        sessionUser: document.getElementById("sessionUser").value,
-        intakeInfo: document.getElementById("intakeInfo").value,
-        loadPattern: document.getElementById("loadPattern").value
+        tableNames: document.getElementById("tableNames").value.trim(),
+        tableDatasetIds: document.getElementById("tableDatasetIds").value.trim(),
+        timestamp: document.getElementById("timestamp").value.trim(),
+        errorDetails: document.getElementById("errorDetails").value.trim(),
+        sessionUser: document.getElementById("sessionUser").value.trim(),
+        intakeInfo: document.getElementById("intakeInfo").value.trim(),
+        loadPattern: document.getElementById("loadPattern").value.trim()
       };
 
-      if (!data.datasetName || !data.opsgenieNumber || !data.alertType) {
-        alert("Please fill required fields");
+      const idLabel = data.collectionId ? `Collection ID: ${data.collectionId}` : `Dataset ID: ${data.datasetId}`;
+      const idValue = data.collectionId || data.datasetId;
+
+      if (!data.datasetName || !data.opsgenieNumber || !data.alertType || !idValue) {
+        alert("Please fill all required fields.");
         return;
       }
 
-      const idToPrint = data.collectionId || data.datasetId;
-      const subject = `ACTION REQUIRED: Failure Alert #${data.opsgenieNumber} for dataset "${data.datasetName}" (${idToPrint})`;
-      const etTime = convertISTtoET(data.timestamp);
+      const subject = `ACTION REQUIRED: Failure Alert #${data.opsgenieNumber} for dataset "${data.datasetName}" (${idLabel})`;
+      const etTime = convertISTToET(data.timestamp);
 
-      let body = `Hi Team,\n\nYou are listed as the Technical/Business Steward for the data lake asset "${data.datasetName}" (${idToPrint}).\n`;
+      let body = `Hi Team,\n\nYou are listed as the Technical/Business Steward for the data lake asset "${data.datasetName}" (${idLabel}).\n`;
 
       if (data.alertType === "RESPONSIVE_METADATA_ERROR") {
-        const tables = data.tableNames.trim().split("\n");
-        const datasets = data.tableDatasetIds.trim().split("\n");
-        body += `\nAs the on-call engineer currently supporting the Data Exchange platform, I wanted to bring to your attention an issue we encountered earlier today.\n\nWe received a "${data.alertType}" alert concerning the below different tables:\n\n`;
+        const tables = data.tableNames.split("\n").map(x => x.trim()).filter(Boolean);
+        const datasets = data.tableDatasetIds.split("\n").map(x => x.trim());
+
+        body += `\nAs the on-call engineer currently supporting the Data Exchange platform, I wanted to bring to your attention an issue we encountered earlier today.\n\n`;
+        body += `We received a "${data.alertType}" alert concerning the below different tables:\n\n`;
 
         tables.forEach((t, i) => {
-          body += `${i + 1}. ${t.trim()} (Dataset ID: ${datasets[i] || "N/A"})\n`;
+          body += `${i + 1}. ${t} (Dataset ID: ${datasets[i] || "N/A"})\n`;
         });
 
         body += `\nError Details:\n${data.errorDetails}\n\nTimestamp: ${etTime}\n`;
