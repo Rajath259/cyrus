@@ -126,13 +126,13 @@
           body += `${i + 1}. ${t} (Dataset ID: ${datasets[i] || "N/A"})\n`;
         });
 
-        body += `\nError Details:\n${data.errorDetails}\n\nTimestamp: ${etTime} ET\n`;
+        body += `\nError Details:\n${data.errorDetails}\n\nSession User: ${data.sessionUser}\nTimestamp: ${etTime} ET\n`;
       } else {
         body += `\nI'm the on-call engineer supporting the data lake, and we received a "${data.alertType}" alert today for your dataset.\n\n`;
-        body += `Error Details:\n${data.errorDetails}\n\nTimestamp: ${etTime} ET\nIntake - ${data.intakeInfo}\nLoad Pattern - ${data.loadPattern}\n`;
+        body += `Error Details:\n${data.errorDetails}\n\nSession User: ${data.sessionUser}\nTimestamp: ${etTime} ET\nIntake - ${data.intakeInfo}\nLoad Pattern - ${data.loadPattern}\n`;
       }
 
-      body += `\nPlease look into it and get back to us if an action is required from our end.\n\nThank you,\n${data.sessionUser}\nDevOps Engg`;
+      body += `\nPlease look into it and get back to us if an action is required from our end.\n\nThank you,\nDevOps Engg`;
 
       sessionStorage.setItem("emailSubject", subject);
       sessionStorage.setItem("emailBody", body);
