@@ -105,8 +105,8 @@
       const idLabel = data.collectionId ? `Collection ID: ${data.collectionId}` : `Dataset ID: ${data.datasetId}`;
       const idValue = data.collectionId || data.datasetId;
 
-      if (!data.datasetName || !data.opsgenieNumber || !data.alertType || !idValue) {
-        alert("Please fill all required fields.");
+      if (!data.datasetName || !data.opsgenieNumber || !data.alertType || !idValue || !data.sessionUser) {
+        alert("Please fill all required fields including Session User.");
         return;
       }
 
@@ -132,7 +132,7 @@
         body += `Error Details:\n${data.errorDetails}\n\nTimestamp: ${etTime} ET\nIntake - ${data.intakeInfo}\nLoad Pattern - ${data.loadPattern}\n`;
       }
 
-      body += `\nPlease look into it and get back to us if an action is required from our end.\n\nThank you,\nRajath N Prasad\nDevOps Engg`;
+      body += `\nPlease look into it and get back to us if an action is required from our end.\n\nThank you,\n${data.sessionUser}\nDevOps Engg`;
 
       sessionStorage.setItem("emailSubject", subject);
       sessionStorage.setItem("emailBody", body);
