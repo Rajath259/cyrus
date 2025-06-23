@@ -23,9 +23,13 @@
   <input id="subject" readonly />
 
   <label>Message:</label>
-  <textarea id="body" readonly></textarea>
+  <textarea id="body" rows="12"></textarea>
 
   <button onclick="sendMail()">Send Email</button>
+
+  <p style="margin-top: 20px; font-size: 14px; color: #d9534f;">
+    ⚠️ Please edit the body of the mail. Before asking the CFA team to check, ensure you provide clear and complete information to the client.
+  </p>
 
   <script>
     window.onload = function () {
